@@ -53,6 +53,7 @@
 .nav-shell{position:fixed;top:18px;left:50%;transform:translateX(-50%);width:min(1220px,92%);display:flex;justify-content:space-between;gap:28px;align-items:center;z-index:40;border:1px solid var(--line);border-radius:100px;background:#0a080ddd;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:10px 14px 10px 25px;min-height:72px;transition:top .3s,background .3s}.nav-shell.scrolled{top:12px;background:#08070bee}
 .brand{display:flex;align-items:center;gap:10px;height:44px}.brand .brand-mark{width:36px;height:30px;flex-shrink:0;display:block}.brand-word{font-size:21px;line-height:1;letter-spacing:-.01em;white-space:nowrap}.brand-word b{font-family:var(--display);font-weight:600;letter-spacing:.01em}.brand-word span{font-weight:500;color:#e9e4ef;margin-left:4px}
 .nav-links{display:flex;gap:26px;align-items:center}.nav-links a{font-size:13px;color:#b3acbc;transition:color .25s;position:relative}.nav-links a:hover{color:white}.nav-links a:after{content:"";height:1px;width:0;background:var(--purple);position:absolute;bottom:-5px;left:0;transition:width .3s}.nav-links a:hover:after{width:100%}.nav-cta{min-height:42px;padding:11px 20px;font-size:13px}
+.nav-actions{display:flex;align-items:center;gap:8px}.nav-login{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:10px 16px;border-radius:100px;font-size:13px;color:#d8cfe3;border:1px solid var(--line);white-space:nowrap;transition:color .25s,border-color .25s,background .25s}.nav-login:hover{color:#fff;border-color:#b65eff60;background:#ad45ff10}.nav-login svg{width:17px;height:17px;flex-shrink:0}@media(max-width:1180px){.nav-login{padding:10px 12px}.nav-login span{display:none}}
 .burger{display:none;background:transparent;border:0;color:white;padding:12px}.burger svg{width:23px;height:23px;display:block}.mobile-menu{position:fixed;top:90px;left:4%;right:4%;background:#0f0a16;border:1px solid var(--strong);border-radius:20px;padding:25px;z-index:39}.mobile-menu[hidden]{display:none}.mobile-menu a{display:block;padding:14px 10px;border-bottom:1px solid var(--line);font-size:17px}.mobile-menu a:last-child{border:0;color:var(--violet)}
 #inicio{padding:160px 0 90px;overflow:hidden}.hero-grid{display:grid;grid-template-columns:1.12fr .88fr;gap:65px;align-items:center}.hero-head h1{font-size:clamp(39px,4.5vw,61px);line-height:1.08;letter-spacing:-.02em;margin-bottom:25px}.hero-head h1 span{display:block}.hero-head .sub{font-size:17px;line-height:1.8;color:var(--muted);max-width:530px;margin-bottom:30px}
 .hero-trust{display:flex;gap:34px;margin:32px 0 32px;flex-wrap:wrap}.hero-trust b{display:block;font-size:18px;font-weight:600}.hero-trust b.num{font-family:var(--display);font-size:30px;line-height:1;color:#e4c6ff;margin-bottom:2px}.hero-trust small{font-size:12px;color:var(--dim);display:block;margin-top:5px}.hero-head .eyebrow{font-size:11px;max-width:490px;line-height:1.6}
@@ -91,11 +92,14 @@ dialog{border:1px solid #694280;background:#110b18;color:white;border-radius:22p
   <nav class="nav-links" aria-label="Navegação principal">
     <a href="#servicos">Serviços</a><a href="#metodologia">Como trabalhamos</a><a href="#videos">Clientes</a><a href="#quem-somos">Quem somos</a><a href="#duvidas">Dúvidas</a>
   </nav>
+  <div class="nav-actions">
+  <a class="nav-login" href="/cliente/" aria-label="Área do cliente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.6-3.6 4.5-5.5 8-5.5s6.4 1.9 8 5.5"/></svg><span>Área do cliente</span></a>
   <a class="btn btn-primary nav-cta" href="#conversa">Fale com a gente</a>
   <button class="burger" aria-label="Abrir menu" aria-controls="mobile-menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M3 7h18M3 12h18M3 17h18"/></svg></button>
+  </div>
 </header>
 <nav class="mobile-menu" id="mobile-menu" aria-label="Menu no celular" hidden>
-  <a href="#servicos">Serviços</a><a href="#metodologia">Como trabalhamos</a><a href="#videos">Clientes</a><a href="#quem-somos">Quem somos</a><a href="#duvidas">Dúvidas</a><a href="#conversa">Fale com a gente</a>
+  <a href="#servicos">Serviços</a><a href="#metodologia">Como trabalhamos</a><a href="#videos">Clientes</a><a href="#quem-somos">Quem somos</a><a href="#duvidas">Dúvidas</a><a href="/cliente/">Área do cliente</a><a href="#conversa">Fale com a gente</a>
 </nav>
 
 <main class="page" id="conteudo">
