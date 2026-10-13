@@ -524,3 +524,40 @@ dialog.largo{width:min(860px,94vw)}
 .kpi strong{white-space:normal;overflow:visible;text-overflow:clip;font-size:22px;overflow-wrap:anywhere}
 .rede-card{display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch}
 @media(max-width:560px){.kpi strong{font-size:19px}}
+
+/* ---------- financeiro ---------- */
+.kpis.fin{grid-template-columns:repeat(4,1fr)}
+.kpi strong.neg{color:#fca5a5}
+.count.alerta{background:#f8717133;color:#fecaca}
+.fin-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.fin-grid .panel{margin:0}
+.legenda-fin{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:6px}
+.legenda-fin i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.cor-a{background:#4ade80}.cor-b{background:#b65eff}
+.hbar{display:grid;grid-template-columns:minmax(0,1.2fr) 1fr auto;gap:10px;align-items:center;font-size:13px;padding:6px 0;color:var(--muted)}
+.hbar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar b{color:#fff;font-weight:600;white-space:nowrap}
+.barra.verde i{background:linear-gradient(90deg,#4ade80,#16a34a)}
+.fin-filtros{margin-bottom:12px}
+.fin-total{font-size:13px;color:var(--muted)}
+.fin-total b{color:#fff}
+.fin-row.cancel{opacity:.5}
+.fin-row.cancel h4{text-decoration:line-through}
+.tag-cli,.tag-auto{font-size:11px;border-radius:100px;padding:1px 7px;border:1px solid}
+.tag-cli{color:var(--info);border-color:#7cc4ff40}
+.tag-auto{color:var(--violet);border-color:#d09cff40}
+.parceiros{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.parc{border:1px solid var(--line);border-radius:var(--r);background:#ffffff05;padding:18px;display:flex;flex-direction:column;gap:12px}
+.parc.off{opacity:.55}
+.parc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.parc-top b{display:block;font-family:var(--display);font-size:17px}
+.parc-top small{font-size:12px;color:var(--dim)}
+.parc-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0}
+.parc-nums .lbl{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.parc-nums strong{font-family:var(--display);font-size:16px;color:#f1e3ff}
+.parc-cli{font-size:12px;color:var(--muted);line-height:1.6}
+.mini-row{padding:10px 12px}
+.mini-row h4{font-size:14px}
+@media(max-width:1100px){.kpis.fin{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.fin-grid{grid-template-columns:1fr}.parceiros{grid-template-columns:1fr}}
+@media(max-width:560px){.main-head .form-actions{width:100%}.main-head .form-actions .btn{flex:1}}

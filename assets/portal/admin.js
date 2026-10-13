@@ -9,6 +9,7 @@ import {
   LIMITE_ARQUIVO, abrirModal
 } from './comum.js';
 import { calendarioMes, vistaResultados, blocoMeta, blocoAcessos, listaAtividades, resumoLeads, linhaLead } from './blocos.js';
+import { vistaFinanceiro, blocoParceiroConta } from './financeiro.js';
 
 const app = $('#app'), topUser = $('#top-user'), dlg = $('#dlg');
 $('#logo').outerHTML = LOGO;
@@ -159,6 +160,7 @@ function renderLista() {
   const total = ['ajustes', 'atrasados', 'novas', 'sols', 'mats'].reduce((n, k) => n + S.alertas[k].length, 0);
   $('#side-list').innerHTML = `
     <button class="side-item" data-vista="geral" aria-current="${S.vista === 'geral'}"><span class="av">${ICON2.home}</span><span class="t"><b>Visão geral</b><small>${total ? total + ' pendência' + (total > 1 ? 's' : '') : 'Tudo em ordem'}</small></span>${total ? `<span class="count">${total}</span>` : ''}</button>
+    <button class="side-item" data-vista="financeiro" aria-current="${S.vista === 'financeiro'}"><span class="av">${ICON2.money}</span><span class="t"><b>Financeiro</b><small>A receber, a pagar, parceiros</small></span></button>
     <button class="side-item" data-vista="config" aria-current="${S.vista === 'config'}"><span class="av">${ICON2.gear}</span><span class="t"><b>Configurações</b><small>Indicação, PIX, avisos</small></span></button>
     <div class="side-h">Clientes (${contas.length})</div>
     ${contas.map(c => {
@@ -186,6 +188,7 @@ function ligarVoltar() {
 
 function renderMain() {
   if (S.vista === 'config') return vistaConfig();
+  if (S.vista === 'financeiro') return vistaFinanceiro($('#main'), { main: $('#main'), barraMobile, ligarVoltar, nomeConta, contas: () => S.contas });
   if (S.vista === 'pessoa') return vistaPessoaEquipe();
   if (S.vista === 'conta' && conta()) return vistaConta();
   return vistaGeral();
@@ -924,12 +927,14 @@ function abaDados() {
       <div id="dc-msg" class="form-msg err" hidden></div>
       <button class="btn btn-primary" type="submit">Salvar dados</button>
     </form>
+    <div class="panel" id="dc-parc"><div class="loading" style="min-height:80px"><div class="spin"></div></div></div>
     <div class="panel"><h3>Zona de cuidado</h3>
       <div class="form-actions">
         <button class="btn" id="b-ativo">${c.ativo ? 'Suspender acesso do cliente' : 'Reativar acesso do cliente'}</button>
         <button class="btn btn-danger" id="b-excluir">Excluir cliente e todos os dados</button>
       </div>
       <p class="vazio-txt" style="margin-top:10px">Suspender bloqueia o login de todas as pessoas da conta, sem apagar nada.</p></div>`;
+  blocoParceiroConta($('#dc-parc'), c.id);
   let tipo = c.tipo_pessoa;
   const doc = $('#dc-doc');
   $$('[data-tipo]', el).forEach(b => b.onclick = () => {
