@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Área do cliente | MLX Mind</title>
+  <meta name="description" content="Área do cliente MLX Mind: postagens da semana, pagamentos e indicações.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#050505">
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preload" href="/assets/fonts/clash-display-600.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/general-sans-500.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/portal/portal.css">
+</head>
+<body>
+  <div class="mesh" aria-hidden="true"></div>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="MLX Mind, voltar ao site">
+        <span id="logo"></span>
+        <span class="brand-word"><b>MLX</b><span>Mind</span></span>
+        <span class="brand-tag">Área do cliente</span>
+      </a>
+      <div class="top-user" id="top-user" hidden></div>
+    </div>
+  </header>
+  <main id="app" class="wrap" aria-live="polite">
+    <div class="loading"><div><div class="spin"></div>Carregando…</div></div>
+  </main>
+  <dialog id="dlg"></dialog>
+  <noscript><p style="padding:40px;text-align:center">Ative o JavaScript para usar a área do cliente.</p></noscript>
+  <script type="module" src="/assets/portal/cliente.js"></script>
+</body>
+</html>
