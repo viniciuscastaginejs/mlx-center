@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /cliente/
 Disallow: /admin/
+Disallow: /relatorio/
 
 Sitemap: https://mlxmind.com.br/sitemap.xml

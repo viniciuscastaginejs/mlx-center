@@ -201,3 +201,151 @@ export const ICON = {
   out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
   plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>'
 };
+
+/* =========================================================
+   v2 · utilidades extras (meses, números, gráficos, uploads)
+   ========================================================= */
+export const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+export function mesISO(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`; }
+export function addMeses(iso, n) { const d = parseData(iso); return mesISO(new Date(d.getFullYear(), d.getMonth() + n, 1)); }
+export function mesNome(iso) { const d = parseData(iso); return `${MESES[d.getMonth()]} de ${d.getFullYear()}`; }
+export function mesCurto(iso) { const d = parseData(iso); return `${MESES[d.getMonth()].slice(0, 3)}/${String(d.getFullYear()).slice(2)}`; }
+export const cap = s => (s || '').charAt(0).toUpperCase() + (s || '').slice(1);
+
+const nf = new Intl.NumberFormat('pt-BR');
+export const num = v => (v === null || v === undefined || v === '') ? '—' : nf.format(Number(v));
+export function compacto(v) {
+  if (v === null || v === undefined) return '—';
+  const n = Number(v);
+  if (Math.abs(n) >= 1e6) return (n / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mi';
+  if (Math.abs(n) >= 1e4) return (n / 1e3).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil';
+  return nf.format(n);
+}
+export function bytes(n) {
+  n = Number(n || 0);
+  if (n < 1024) return n + ' B';
+  if (n < 1024 ** 2) return (n / 1024).toFixed(0) + ' KB';
+  if (n < 1024 ** 3) return (n / 1024 ** 2).toFixed(1).replace('.', ',') + ' MB';
+  return (n / 1024 ** 3).toFixed(2).replace('.', ',') + ' GB';
+}
+// variação entre dois valores → { txt: '+12%', cls: 'up'|'down'|'' }
+export function variacao(atual, anterior, invertido = false) {
+  if (atual === null || atual === undefined || anterior === null || anterior === undefined || Number(anterior) === 0) return null;
+  const d = Number(atual) - Number(anterior), pct = d / Math.abs(Number(anterior)) * 100;
+  const bom = invertido === true ? d < 0 : d > 0;
+  return { dif: d, pct, txt: `${d > 0 ? '+' : ''}${pct.toLocaleString('pt-BR', { maximumFractionDigits: Math.abs(pct) < 10 ? 1 : 0 })}%`, cls: d === 0 || invertido === 'neutro' ? '' : bom ? 'up' : 'down' };
+}
+
+// Definição das métricas mensais
+export const METRICAS = [
+  { k: 'seguidores', t: 'Seguidores', d: 'Total no fim do mês' },
+  { k: 'alcance', t: 'Alcance', d: 'Contas alcançadas' },
+  { k: 'visualizacoes', t: 'Visualizações', d: 'Impressões / views' },
+  { k: 'interacoes', t: 'Interações', d: 'Curtidas, comentários, salvos, compartilhamentos' },
+  { k: 'visitas_perfil', t: 'Visitas ao perfil', d: '' },
+  { k: 'cliques', t: 'Cliques no link', d: 'Site, WhatsApp, link da bio' },
+  { k: 'mensagens', t: 'Mensagens / conversas', d: 'Directs e conversas iniciadas' },
+  { k: 'leads', t: 'Leads', d: 'Contatos interessados' },
+  { k: 'investimento', t: 'Investimento em anúncios', d: 'R$', dinheiro: true }
+];
+export const REDES = ['Instagram', 'Facebook', 'TikTok', 'YouTube', 'LinkedIn', 'Google Meu Negócio', 'Anúncios Meta', 'Anúncios Google', 'Site'];
+export const STATUS_SOL = { aberta: ['Aberta', 'b-info'], em_andamento: ['Em andamento', 'b-warn'], concluida: ['Concluída', 'b-ok'], cancelada: ['Cancelada', 'b-dim'] };
+export const STATUS_LEAD = { novo: ['Novo', 'b-info'], em_atendimento: ['Em atendimento', 'b-warn'], proposta: ['Proposta enviada', 'b-purple'], fechou: ['Fechou', 'b-ok'], perdido: ['Perdido', 'b-dim'] };
+export const STATUS_MAT = { novo: ['Novo', 'b-info'], usado: ['Já usado', 'b-ok'], arquivado: ['Arquivado', 'b-dim'] };
+
+/* ---------- links temporários de qualquer bucket ---------- */
+const cacheB = new Map();
+export async function urlsDe(bucket, paths, download = false) {
+  const falta = [...new Set(paths.filter(p => p && !cacheB.has(bucket + (download ? '!' : '') + p)))];
+  if (falta.length) {
+    const { data } = await sb.storage.from(bucket).createSignedUrls(falta, 60 * 60 * 3, download ? { download: true } : undefined);
+    (data || []).forEach(d => { if (d.signedUrl) cacheB.set(bucket + (download ? '!' : '') + d.path, d.signedUrl); });
+  }
+  return p => cacheB.get(bucket + (download ? '!' : '') + p) || '';
+}
+export async function baixar(bucket, path) {
+  const { data, error } = await sb.storage.from(bucket).createSignedUrl(path, 120, { download: true });
+  if (error) return toast(erroAmigavel(error), true);
+  location.href = data.signedUrl;
+}
+
+/* ---------- compressão de imagem antes de enviar (pesa menos) ---------- */
+export async function comprimirImagem(file, max = 2400, qualidade = 0.85) {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size < 1.2 * 1024 * 1024) return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const esc = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * esc); c.height = Math.round(bmp.height * esc);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', qualidade));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.(png|webp|jpe?g)$/i, '') + '.jpg', { type: 'image/jpeg' });
+  } catch { return file; }
+}
+export function nomeSeguro(nome) {
+  return (nome || 'arquivo').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w.\-]+/g, '-').replace(/-+/g, '-').slice(-80);
+}
+export const LIMITE_ARQUIVO = 50 * 1024 * 1024;
+
+/* ---------- gráficos SVG simples ---------- */
+export function grafico(pontos, { tipo = 'linha', altura = 180, cor = '#b65eff', fmt = compacto, claro = false } = {}) {
+  const vals = pontos.map(p => p.v);
+  const validos = vals.filter(v => v !== null && v !== undefined);
+  if (validos.length < 1) return '<div class="graf-vazio">Sem dados suficientes ainda.</div>';
+  const W = 600, H = altura, pl = 8, pr = 8, pt = 26, pb = 26;
+  let mn = Math.min(...validos), mx = Math.max(...validos);
+  if (tipo === 'barras') mn = 0;
+  if (mx === mn) { mx = mx + 1; mn = Math.max(0, mn - 1); }
+  const pad = (mx - mn) * 0.12; if (tipo !== 'barras') mn = Math.max(0, mn - pad); mx += pad;
+  const n = pontos.length, larg = (W - pl - pr) / n;
+  const x = i => pl + larg * i + larg / 2, y = v => pt + (H - pt - pb) * (1 - (v - mn) / (mx - mn));
+  const txt = claro ? '#6b6178' : '#8f849b', grid = claro ? '#ece6f3' : '#ffffff12', val = claro ? '#2a1d3a' : '#efe4ff';
+  let corpo = '';
+  if (tipo === 'barras') {
+    corpo = pontos.map((p, i) => p.v === null || p.v === undefined ? '' :
+      `<rect x="${x(i) - larg * 0.28}" y="${y(p.v)}" width="${larg * 0.56}" height="${H - pb - y(p.v)}" rx="6" fill="${cor}" opacity="${i === n - 1 ? 1 : 0.55}"/>
+       <text x="${x(i)}" y="${y(p.v) - 7}" text-anchor="middle" font-size="12" fill="${val}" font-weight="600">${esc(fmt(p.v))}</text>`).join('');
+  } else {
+    const seg = pontos.map((p, i) => p.v === null || p.v === undefined ? null : [x(i), y(p.v)]).filter(Boolean);
+    const d = seg.map((s, i) => (i ? 'L' : 'M') + s[0].toFixed(1) + ' ' + s[1].toFixed(1)).join(' ');
+    const area = seg.length > 1 ? `<path d="${d} L${seg.at(-1)[0]} ${H - pb} L${seg[0][0]} ${H - pb} Z" fill="${cor}" opacity=".12"/>` : '';
+    corpo = area + `<path d="${d}" fill="none" stroke="${cor}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>` +
+      pontos.map((p, i) => p.v === null || p.v === undefined ? '' :
+        `<circle cx="${x(i)}" cy="${y(p.v)}" r="${i === n - 1 ? 5 : 3.5}" fill="${cor}"/>
+         <text x="${x(i)}" y="${y(p.v) - 10}" text-anchor="middle" font-size="12" fill="${val}" font-weight="600">${esc(fmt(p.v))}</text>`).join('');
+  }
+  const eixos = pontos.map((p, i) => `<text x="${x(i)}" y="${H - 6}" text-anchor="middle" font-size="12" fill="${txt}">${esc(p.r)}</text>`).join('');
+  return `<svg class="graf" viewBox="0 0 ${W} ${H}" role="img" preserveAspectRatio="none" style="width:100%;height:auto">
+    <line x1="${pl}" x2="${W - pr}" y1="${H - pb}" y2="${H - pb}" stroke="${grid}"/>${corpo}${eixos}</svg>`;
+}
+
+/* ---------- formulário em modal ---------- */
+export function abrirModal(dlg, html, aoMontar) {
+  dlg.innerHTML = `<button class="x" aria-label="Fechar" data-fechar>×</button>${html}`;
+  if (!dlg.open) dlg.showModal();
+  $$('[data-fechar]', dlg).forEach(b => b.onclick = () => dlg.close());
+  aoMontar?.(dlg);
+}
+
+export const ICON2 = {
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>',
+  cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  funnel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 4h18l-7 9v6l-4 2v-8z"/></svg>',
+  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
+  report: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2h9l5 5v15H6z"/><path d="M9 17v-3M12 17v-6M15 17v-4"/></svg>',
+  chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8 11h8M8 14h5"/></svg>',
+  upload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>',
+  money: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 10v5M18 10v5"/></svg>',
+  key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M14 9l2 2"/></svg>',
+  gift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v8h14v-8M12 8v13M12 8c-2-4-6-4-6-1s6 1 6 1 6 2 6-1-4-3-6 1"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.6-3.6 4.5-5.5 8-5.5s6.4 1.9 8 5.5"/></svg>',
+  users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c1.2-3 3.6-4.5 6.5-4.5s5.3 1.5 6.5 4.5M16 4.5a3.5 3.5 0 0 1 0 7M18 15.5c1.7.6 2.8 2 3.5 4.5"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg>',
+  target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>'
+};
