@@ -10,6 +10,7 @@ import {
 } from './comum.js';
 import { calendarioMes, vistaResultados, blocoMeta, blocoAcessos, listaAtividades, resumoLeads, linhaLead } from './blocos.js';
 import { vistaFinanceiro, blocoParceiroConta } from './financeiro.js';
+import { vistaChecklist, ICONE_CHECKLIST } from './checklist.js';
 
 const app = $('#app'), topUser = $('#top-user'), dlg = $('#dlg');
 $('#logo').outerHTML = LOGO;
@@ -160,6 +161,7 @@ function renderLista() {
   const total = ['ajustes', 'atrasados', 'novas', 'sols', 'mats'].reduce((n, k) => n + S.alertas[k].length, 0);
   $('#side-list').innerHTML = `
     <button class="side-item" data-vista="geral" aria-current="${S.vista === 'geral'}"><span class="av">${ICON2.home}</span><span class="t"><b>Visão geral</b><small>${total ? total + ' pendência' + (total > 1 ? 's' : '') : 'Tudo em ordem'}</small></span>${total ? `<span class="count">${total}</span>` : ''}</button>
+    <button class="side-item" data-vista="checklist" aria-current="${S.vista === 'checklist'}"><span class="av">${ICONE_CHECKLIST}</span><span class="t"><b>Meu checklist</b><small>Suas tarefas do dia</small></span></button>
     <button class="side-item" data-vista="financeiro" aria-current="${S.vista === 'financeiro'}"><span class="av">${ICON2.money}</span><span class="t"><b>Financeiro</b><small>A receber, a pagar, parceiros</small></span></button>
     <button class="side-item" data-vista="config" aria-current="${S.vista === 'config'}"><span class="av">${ICON2.gear}</span><span class="t"><b>Configurações</b><small>Indicação, PIX, avisos</small></span></button>
     <div class="side-h">Clientes (${contas.length})</div>
@@ -188,6 +190,7 @@ function ligarVoltar() {
 
 function renderMain() {
   if (S.vista === 'config') return vistaConfig();
+  if (S.vista === 'checklist') return vistaChecklist($('#main'), { main: $('#main'), barraMobile, ligarVoltar, nomeConta, contas: () => S.contas, eu: S.eu, dlg, abrirConta });
   if (S.vista === 'financeiro') return vistaFinanceiro($('#main'), { main: $('#main'), barraMobile, ligarVoltar, nomeConta, contas: () => S.contas });
   if (S.vista === 'pessoa') return vistaPessoaEquipe();
   if (S.vista === 'conta' && conta()) return vistaConta();
